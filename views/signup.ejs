@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+<section class="card narrow">
+  <h1>Set up your school</h1>
+  <% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
+  <form method="post" action="/signup" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>School or district name <input name="school_name" value="<%= values.school_name || '' %>" required></label>
+    <label>Contact email for parents <input type="email" name="contact_email" value="<%= values.contact_email || '' %>" placeholder="office@yourschool.org"></label>
+    <hr>
+    <label>Your name <input name="name" value="<%= values.name || '' %>" required></label>
+    <label>Your email <input type="email" name="email" value="<%= values.email || '' %>" required autocomplete="username"></label>
+    <label>Password <small class="muted">(at least 10 characters)</small> <input type="password" name="password" minlength="10" required autocomplete="new-password"></label>
+    <button class="btn btn-primary" type="submit">Create account</button>
+  </form>
+</section>
+<%- include('partials/footer') %>

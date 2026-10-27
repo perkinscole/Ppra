@@ -1,0 +1,73 @@
+<%- include('../partials/header') %>
+<h1><%= survey.id ? 'Edit survey' : 'Add a survey' %></h1>
+<% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
+<form method="post" action="/app/surveys<%= survey.id ? '/' + survey.id : '' %>" enctype="multipart/form-data" class="survey-form">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="card stack">
+    <h2>About the survey</h2>
+    <label>Title <input name="title" value="<%= survey.title || '' %>" required placeholder="e.g. Spring School Climate Survey"></label>
+    <label>Purpose, as parents will see it <textarea name="description" rows="3" placeholder="What is this survey for and how will results be used?"><%= survey.description || '' %></textarea></label>
+    <div class="row">
+      <label>Administered by <input name="administered_by" value="<%= survey.administered_by || '' %>" placeholder="Counseling dept., vendor, university…"></label>
+      <label>Grades <input name="grades" value="<%= survey.grades || '' %>" placeholder="e.g. 6-8 or K, 3, 5 (blank = all)"></label>
+    </div>
+    <div class="row">
+      <label>First day given <input type="date" name="start_date" value="<%= survey.start_date || '' %>"></label>
+      <label>Last day given <input type="date" name="end_date" value="<%= survey.end_date || '' %>"></label>
+    </div>
+    <label>How is it funded?
+      <select name="funding_source">
+        <% Object.entries(ppra.FUNDING_SOURCES).forEach(([k, v]) => { %>
+          <option value="<%= k %>" <%= survey.funding_source === k ? 'selected' : '' %>><%= v %></option>
+        <% }) %>
+      </select>
+    </label>
+    <fieldset class="inline-radios">
+      <legend>Are students required to complete it?</legend>
+      <label><input type="radio" name="requires_student_response" value="yes" <%= survey.requires_student_response !== false ? 'checked' : '' %>> Yes, or it is presented as expected</label>
+      <label><input type="radio" name="requires_student_response" value="no" <%= survey.requires_student_response === false ? 'checked' : '' %>> No, it is clearly voluntary</label>
+    </fieldset>
+  </div>
+
+  <div class="card stack">
+    <h2>The instrument</h2>
+    <label>Paste every question <small class="muted">(parents see this text when they review the survey)</small>
+      <textarea name="instrument_text" id="instrument_text" rows="12" class="mono"><%= survey.instrument_text || '' %></textarea>
+    </label>
+    <label>Or attach the file <small class="muted">(PDF, Word, or image; max 15 MB<%= survey.file_name ? '. Current file: ' + survey.file_name : '' %>)</small>
+      <input type="file" name="instrument_file" accept=".pdf,.doc,.docx,.txt,.rtf,.odt,.png,.jpg,.jpeg">
+    </label>
+  </div>
+
+  <div class="card stack">
+    <h2>PPRA protected areas</h2>
+    <p class="muted">Check every area that <em>any</em> question asks about. Items marked "suggested" contain words from that area, which is a prompt to look closely, not a decision. Read every question yourself.</p>
+    <div class="areas">
+    <% ppra.PROTECTED_AREAS.forEach((a) => { %>
+      <label class="area" data-area="<%= a.key %>">
+        <input type="checkbox" name="protected_areas" value="<%= a.key %>" <%= (survey.protected_areas || []).includes(a.key) ? 'checked' : '' %>>
+        <span><strong><%= a.label %></strong><br><span class="small muted"><%= a.help %></span>
+        <span class="suggest small" <%- suggestions[a.key] ? '' : 'hidden' %>>Suggested, matched: <em class="cues"><%= (suggestions[a.key] || []).join(', ') %></em></span></span>
+      </label>
+    <% }) %>
+    </div>
+  </div>
+
+  <p><button class="btn btn-primary" type="submit">Save draft</button> <a class="btn" href="<%= survey.id ? '/app/surveys/' + survey.id : '/app/surveys' %>">Cancel</a></p>
+</form>
+<script>
+  // Live keyword hints while pasting questions (mirrors scanInstrument in src/ppra.js).
+  const AREAS = <%- JSON.stringify(ppra.PROTECTED_AREAS.map((a) => ({ key: a.key, cues: a.cues }))).replace(/</g, '\\u003c') %>;
+  const box = document.getElementById('instrument_text');
+  function scan() {
+    const text = ' ' + box.value.toLowerCase() + ' ';
+    for (const a of AREAS) {
+      const hits = a.cues.filter((c) => new RegExp('\\b' + c).test(text));
+      const el = document.querySelector('[data-area="' + a.key + '"] .suggest');
+      el.hidden = !hits.length;
+      el.querySelector('.cues').textContent = hits.join(', ');
+    }
+  }
+  box.addEventListener('input', scan);
+</script>
+<%- include('../partials/footer') %>

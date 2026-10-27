@@ -1,0 +1,23 @@
+{
+  "name": "ppra-consent-manager",
+  "version": "0.1.0",
+  "description": "PPRA survey registry and parent opt-in consent manager for schools",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node --no-warnings=ExperimentalWarning src/server.js",
+    "dev": "node --no-warnings=ExperimentalWarning --watch src/server.js",
+    "seed": "node --no-warnings=ExperimentalWarning scripts/seed.js",
+    "test": "node --no-warnings=ExperimentalWarning --test"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "cookie-session": "^2.1.1",
+    "ejs": "^3.1.10",
+    "express": "^5.3.0",
+    "multer": "^2.5.0"
+  }
+}

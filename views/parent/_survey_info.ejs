@@ -1,0 +1,11 @@
+<section class="card">
+  <h2>About this survey</h2>
+  <dl class="facts">
+    <% if (survey.description) { %><dt>Purpose</dt><dd><%= survey.description %></dd><% } %>
+    <% if (survey.administered_by) { %><dt>Given by</dt><dd><%= survey.administered_by %></dd><% } %>
+    <dt>Grades</dt><dd><%= survey.grades || 'All grades' %></dd>
+    <% if (survey.start_date) { %><dt>When</dt><dd><%= survey.start_date %><%= survey.end_date ? ' to ' + survey.end_date : '' %></dd><% } %>
+    <dt>Sensitive topics</dt>
+    <dd><% if (c.areas.length) { %><ul><% c.areas.forEach((a) => { %><li><%= ppra.AREA_BY_KEY[a].label %></li><% }) %></ul><% } else { %>None identified<% } %></dd>
+  </dl>
+</section>

@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+<p class="no-print"><button class="btn btn-primary" onclick="window.print()">Print</button></p>
+<h1><%= survey.title %>: participation roster</h1>
+<p><%= school.name %> · Printed <%= new Date().toISOString().slice(0, 10) %> · <%= ppra.CONSENT_TIERS[c.required].label %></p>
+<p><strong>Only students marked YES may take this survey.</strong> <%= c.required === 'opt_in' ? 'Students without signed permission must be given an alternative activity.' : '' %></p>
+<table class="print-table">
+  <thead><tr><th>Student</th><th>Grade</th><th>May participate</th><th>Notes</th></tr></thead>
+  <tbody>
+  <% rows.forEach((r) => { %>
+    <tr class="<%= r.allowed ? '' : 'excluded' %>"><td><%= r.last_name %>, <%= r.first_name %></td><td><%= r.grade %></td><td><strong><%= r.allowed ? 'YES' : 'NO' %></strong></td><td></td></tr>
+  <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

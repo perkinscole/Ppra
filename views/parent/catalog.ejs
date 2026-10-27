@@ -1,0 +1,23 @@
+<%- include('../partials/header') %>
+<h1>Student surveys at <%= portal.name %></h1>
+<p class="lead">These are the surveys our students may be asked to take. Under the federal Protection of Pupil Rights Amendment (PPRA), you may review any survey before it is given.
+<% if (portal.opt_in_all_protected) { %>We ask for your written permission before your child takes a survey on a sensitive topic. Without it, your child will not take the survey.<% } %></p>
+<% if (!surveys.length) { %><p class="card">No surveys are currently scheduled.</p><% } %>
+<div class="catalog">
+<% surveys.forEach((s) => { %>
+  <article class="card">
+    <h2><%= s.title %></h2>
+    <p class="small muted"><%= s.grades ? 'Grades ' + s.grades : 'All grades' %><%= s.start_date ? ' · ' + s.start_date : '' %><%= s.end_date ? ' – ' + s.end_date : '' %><%= s.administered_by ? ' · ' + s.administered_by : '' %></p>
+    <% if (s.description) { %><p><%= s.description %></p><% } %>
+    <% if (s.classification.areas.length) { %>
+      <p class="small"><strong>Sensitive topics:</strong> <%= s.classification.areas.map((a) => ppra.AREA_BY_KEY[a].label).join('; ') %></p>
+      <p class="small"><%- include('../partials/tier', { tier: s.classification.required }) %> <%= s.classification.required === 'opt_in' ? 'Your written permission is required. You will receive a permission form.' : 'You may opt your child out.' %></p>
+    <% } else { %>
+      <p class="small">No sensitive topics identified.</p>
+    <% } %>
+    <a class="btn" href="/s/<%= portal.slug %>/request/<%= s.id %>">Request to review this survey</a>
+  </article>
+<% }) %>
+</div>
+<p class="small muted">Questions? Contact <%= portal.contact_email || 'your school office' %>.</p>
+<%- include('../partials/footer') %>

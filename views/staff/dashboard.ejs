@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+<div class="pagehead">
+  <h1><%= school.name %></h1>
+  <a class="btn btn-primary" href="/app/surveys/new">Add a survey</a>
+</div>
+
+<section class="stats">
+  <a class="stat" href="/app/surveys"><span class="stat-n"><%= total %></span><span>surveys in registry</span></a>
+  <a class="stat" href="/app/surveys"><span class="stat-n"><%= protectedCount %></span><span>touch a protected area</span></a>
+  <a class="stat <%= byStatus.draft + byStatus.rejected ? 'stat-warn' : '' %>" href="/app/surveys?status=draft"><span class="stat-n"><%= byStatus.draft + byStatus.rejected %></span><span>not yet reviewed</span></a>
+  <a class="stat <%= byStatus.in_review ? 'stat-warn' : '' %>" href="/app/surveys?status=in_review"><span class="stat-n"><%= byStatus.in_review %></span><span>waiting on a reviewer</span></a>
+  <a class="stat <%= openRequests.length ? 'stat-warn' : '' %>" href="/app/requests"><span class="stat-n"><%= openRequests.length %></span><span>parent requests open</span></a>
+</section>
+
+<% if (!total) { %>
+<section class="card callout">
+  <h2>Getting started</h2>
+  <ol>
+    <li><a href="/app/surveys/new">Add each survey</a> your school currently gives students: climate surveys, SEL screeners, health surveys, and vendor or university research.</li>
+    <li>Check the protected areas each one touches. The app works out whether PPRA requires opt-in consent, and your district policy can require opt-in for every one.</li>
+    <li><a href="/app/roster">Import your student and guardian roster</a> (CSV from your SIS).</li>
+    <li>Once a survey is approved, generate consent forms and send each family its link.</li>
+    <li>Share your parent page, <a href="/s/<%= school.slug %>">/s/<%= school.slug %></a>, so families can see every survey and ask to review one.</li>
+  </ol>
+</section>
+<% } %>
+
+<section class="card">
+  <h2>Consent campaigns</h2>
+  <% if (!campaigns.length) { %>
+    <p class="muted">No approved surveys need consent yet.</p>
+  <% } else { %>
+  <table>
+    <thead><tr><th>Survey</th><th>Consent</th><th>Forms</th><th>Permission given</th><th>Declined</th><th>No response</th><th></th></tr></thead>
+    <tbody>
+    <% campaigns.forEach(({ survey, classification, counts }) => { %>
+      <tr>
+        <td><a href="/app/surveys/<%= survey.id %>"><%= survey.title %></a></td>
+        <td><%- include('../partials/tier', { tier: classification.required }) %></td>
+        <td><%= counts.total || '—' %></td>
+        <td><%= counts.granted %></td>
+        <td><%= counts.declined %></td>
+        <td><%= counts.pending %></td>
+        <td><% if (counts.total) { %>
+          <div class="meter" title="<%= Math.round(100 * (counts.granted + counts.declined) / counts.total) %>% responded"><span style="width: <%= Math.round(100 * (counts.granted + counts.declined) / counts.total) %>%"></span></div>
+          <% } else { %><a href="/app/surveys/<%= survey.id %>">Generate forms</a><% } %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</section>
+
+<% if (openRequests.length) { %>
+<section class="card">
+  <h2>Parents waiting to review a survey</h2>
+  <ul class="plain">
+  <% openRequests.forEach((r) => { %>
+    <li><strong><%= r.requester_name %></strong> asked to review <em><%= r.survey_title %></em> <span class="muted small">· <%= r.created_at %> UTC</span></li>
+  <% }) %>
+  </ul>
+  <p><a href="/app/requests">Respond to requests →</a></p>
+</section>
+<% } %>
+
+<p class="small muted">Roster: <%= studentCount %> students · Parent page: <a href="/s/<%= school.slug %>"><%= absUrl('/s/' + school.slug) %></a></p>
+<%- include('../partials/footer') %>

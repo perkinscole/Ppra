@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+<p class="crumbs"><a href="/s/<%= portal.slug %>">All surveys</a></p>
+<h1>Request to review: <%= survey.title %></h1>
+<% if (sent) { %>
+  <section class="card">
+    <p class="flash flash-ok" role="status"><strong>Request received.</strong> Once the school confirms you are a parent or guardian of an enrolled student, we will email a private link to the survey to <strong><%= values.requester_email %></strong>.</p>
+    <p><a href="/s/<%= portal.slug %>">Back to all surveys</a></p>
+  </section>
+<% } else { %>
+<section class="card narrow-left">
+  <% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
+  <form method="post" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Your name <input name="requester_name" value="<%= values.requester_name || '' %>" required autocomplete="name"></label>
+    <label>Your email <input type="email" name="requester_email" value="<%= values.requester_email || '' %>" required autocomplete="email"></label>
+    <label>Your student's name <input name="student_name" value="<%= values.student_name || '' %>" required></label>
+    <label>Anything else? <small class="muted">(optional)</small> <textarea name="message" rows="3"><%= values.message || '' %></textarea></label>
+    <button class="btn btn-primary" type="submit">Send request</button>
+  </form>
+</section>
+<% } %>
+<%- include('../partials/footer') %>

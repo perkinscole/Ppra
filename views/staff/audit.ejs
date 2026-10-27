@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+<h1>Audit log</h1>
+<p class="muted">Every review decision, consent response, and inspection request, newest first (last 500).</p>
+<div class="card flush">
+<table>
+  <thead><tr><th>When (UTC)</th><th>Who</th><th>What</th><th>Details</th></tr></thead>
+  <tbody>
+  <% entries.forEach((e) => { %>
+    <tr><td class="small"><%= e.created_at %></td><td class="small"><%= e.actor %></td>
+      <td><%= e.action %><% if (e.entity === 'survey' && e.entity_id) { %> <a class="small" href="/app/surveys/<%= e.entity_id %>">#<%= e.entity_id %></a><% } %></td>
+      <td class="small"><%= e.detail %></td></tr>
+  <% }) %>
+  </tbody>
+</table>
+</div>
+<%- include('../partials/footer') %>

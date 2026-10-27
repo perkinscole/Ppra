@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+<h1>Parent inspection requests</h1>
+<p class="muted">Under PPRA, parents may inspect a survey on request before it is given. Confirm the requester is a parent or guardian of an enrolled student, then grant access. They get a private link to the instrument that is valid for 30 days.</p>
+<% if (!requests.length) { %><p class="card muted">No requests yet. Share your parent page: <a href="/s/<%= school.slug %>"><%= absUrl('/s/' + school.slug) %></a></p><% } %>
+<% requests.forEach((r) => { %>
+  <section class="card">
+    <div class="pagehead">
+      <div>
+        <h2><%= r.requester_name %> <%- include('../partials/status', { status: r.status }) %></h2>
+        <p class="small muted"><a href="mailto:<%= r.requester_email %>"><%= r.requester_email %></a> · Student: <%= r.student_name %> · <%= r.created_at %> UTC</p>
+      </div>
+    </div>
+    <p>Wants to review <a href="/app/surveys/<%= r.survey_id %>"><strong><%= r.survey_title %></strong></a>.</p>
+    <% if (r.message) { %><blockquote><%= r.message %></blockquote><% } %>
+    <% if (r.status === 'open') { %>
+      <form method="post" action="/app/requests/<%= r.id %>" class="stack">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label>Notes <input name="resolution_notes" placeholder="e.g. Verified as guardian in SIS"></label>
+        <div><button class="btn btn-primary" name="decision" value="fulfill">Grant access</button> <button class="btn" name="decision" value="decline">Decline</button></div>
+      </form>
+    <% } else { %>
+      <p class="small"><%= r.resolution_notes %><% if (r.status === 'fulfilled' && r.access_token) { %><br>Access link: <code><%= absUrl('/s/inspect/' + r.access_token) %></code><% } %></p>
+    <% } %>
+  </section>
+<% }) %>
+<%- include('../partials/footer') %>
