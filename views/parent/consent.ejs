@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+<% const who = consent.is_eligible ? 'you' : consent.first_name; %>
+<h1>Permission for <%= survey.title %></h1>
+<p class="lead"><%= portal.name %> is asking <%= consent.is_eligible ? 'for your permission to take' : 'for your permission for ' + consent.first_name + ' ' + consent.last_name + ' (grade ' + consent.grade + ') to take' %> this survey.
+  <% if (c.required === 'opt_in') { %><strong><%= consent.is_eligible ? 'You' : consent.first_name %> will not take it unless you give permission.</strong><% } %></p>
+
+<% if (done || consent.status !== 'pending') { %>
+  <div class="flash <%= consent.status === 'granted' ? 'flash-ok' : 'flash-warn' %>" role="status">
+    <% if (done) { %><strong>Thank you, your response was saved.</strong><br><% } %>
+    Current response: <strong><%= consent.status === 'granted' ? 'Permission given' : 'Permission declined' %></strong>
+    by <%= consent.signer_name %> on <%= consent.responded_at %> UTC. You can change it below at any time before the survey is given.
+  </div>
+<% } %>
+
+<%- include('_survey_info') %>
+<%- include('_instrument', { open: false, fileUrl: '/s/consent/' + consent.token + '/file' }) %>
+
+<section class="card">
+  <h2>Your decision</h2>
+  <% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
+  <% if (survey.status !== 'approved') { %>
+    <p>This survey is no longer active, so responses are closed.</p>
+  <% } else { %>
+  <form method="post" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <fieldset class="choices">
+      <legend class="sr-only">Do you give permission?</legend>
+      <label class="choice"><input type="radio" name="decision" value="granted" required <%= consent.status === 'granted' ? 'checked' : '' %>>
+        <span><strong>Yes</strong>, <%= who %> may take this survey.</span></label>
+      <label class="choice"><input type="radio" name="decision" value="declined" <%= consent.status === 'declined' ? 'checked' : '' %>>
+        <span><strong>No</strong>, <%= who %> may not take this survey.</span></label>
+    </fieldset>
+    <label class="check"><input type="checkbox" name="reviewed"> <span>I have had the chance to read the survey questions above.</span></label>
+    <div class="row">
+      <label>Your full name (your signature) <input name="signer_name" required autocomplete="name"></label>
+      <% if (!consent.is_eligible) { %>
+      <label>Relationship to student
+        <select name="relationship" required>
+          <option value="">Choose…</option><option>Parent</option><option>Legal guardian</option><option>Other person acting as parent</option>
+        </select>
+      </label>
+      <% } %>
+    </div>
+    <p class="small muted">Typing your name and submitting counts as your signature. We record the date and time.</p>
+    <button class="btn btn-primary" type="submit">Submit my response</button>
+  </form>
+  <% } %>
+</section>
+<p class="small muted">Questions? Contact <%= portal.contact_email || 'your school office' %>. <a href="/s/<%= portal.slug %>">See all surveys at <%= portal.name %></a>.</p>
+<%- include('../partials/footer') %>

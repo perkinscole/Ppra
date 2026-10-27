@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+<div class="pagehead">
+  <h1>Survey registry</h1>
+  <a class="btn btn-primary" href="/app/surveys/new">Add a survey</a>
+</div>
+<nav class="tabs" aria-label="Filter by status">
+  <% [['', 'Active'], ['draft', 'Draft'], ['in_review', 'In review'], ['rejected', 'Needs changes'], ['approved', 'Approved'], ['retired', 'Retired']].forEach(([v, l]) => { %>
+    <a href="/app/surveys<%= v ? '?status=' + v : '' %>" <%- status === v ? 'aria-current="page"' : '' %>><%= l %></a>
+  <% }) %>
+</nav>
+<% if (!surveys.length) { %>
+  <p class="card muted">No surveys here yet.</p>
+<% } else { %>
+<div class="card flush">
+<table>
+  <thead><tr><th>Survey</th><th>Status</th><th>Protected areas</th><th>Funding</th><th>Consent required</th><th>Dates</th></tr></thead>
+  <tbody>
+  <% surveys.forEach((s) => { %>
+    <tr>
+      <td><a href="/app/surveys/<%= s.id %>"><strong><%= s.title %></strong></a><div class="small muted"><%= s.administered_by %><%= s.grades ? ' · Grades ' + s.grades : '' %></div></td>
+      <td><%- include('../partials/status', { status: s.status }) %></td>
+      <td><% if (s.classification.areas.length) { %><span class="chips"><% s.classification.areas.forEach((a) => { %><span class="chip"><%= ppra.AREA_BY_KEY[a].label.split(/[,(]/)[0] %></span><% }) %></span><% } else { %><span class="muted">None marked</span><% } %></td>
+      <td class="small"><%= ppra.FUNDING_SOURCES[s.funding_source].split(' (')[0] %></td>
+      <td><%- include('../partials/tier', { tier: s.classification.required }) %></td>
+      <td class="small"><%= s.start_date || '' %><%= s.end_date ? ' – ' + s.end_date : '' %></td>
+    </tr>
+  <% }) %>
+  </tbody>
+</table>
+</div>
+<% } %>
+<%- include('../partials/footer') %>

@@ -1,0 +1,57 @@
+<%- include('../partials/header') %>
+<div class="pagehead">
+  <div>
+    <p class="crumbs"><a href="/app/surveys/<%= survey.id %>"><%= survey.title %></a></p>
+    <h1>Consent responses</h1>
+    <p><%- include('../partials/tier', { tier: c.required }) %> <%= ppra.CONSENT_TIERS[c.required].label %>.
+      <%= c.required === 'opt_in' ? 'Only students with a signed permission may take this survey.' : 'Students may take it unless a parent declined.' %></p>
+  </div>
+  <div class="actions">
+    <a class="btn" href="/app/surveys/<%= survey.id %>/consents.csv">Export links for mail merge (CSV)</a>
+    <a class="btn btn-primary" href="/app/surveys/<%= survey.id %>/roster" target="_blank">Print participation roster</a>
+  </div>
+</div>
+
+<section class="stats">
+  <div class="stat"><span class="stat-n"><%= counts.total %></span><span>students</span></div>
+  <div class="stat stat-ok"><span class="stat-n"><%= counts.granted %></span><span>permission given</span></div>
+  <div class="stat"><span class="stat-n"><%= counts.declined %></span><span>declined</span></div>
+  <div class="stat <%= counts.pending ? 'stat-warn' : '' %>"><span class="stat-n"><%= counts.pending %></span><span>no response yet</span></div>
+</section>
+
+<nav class="tabs" aria-label="Filter">
+  <% [['', 'All'], ['participating', 'May participate'], ['excluded', 'May not participate'], ['pending', 'No response'], ['granted', 'Permission given'], ['declined', 'Declined']].forEach(([v, l]) => { %>
+    <a href="?filter=<%= v %>" <%- filter === v ? 'aria-current="page"' : '' %>><%= l %></a>
+  <% }) %>
+</nav>
+
+<div class="card flush">
+<table>
+  <thead><tr><th>Student</th><th>Grade</th><th>Sent to</th><th>Response</th><th>Signed by</th><th>Record a paper form</th></tr></thead>
+  <tbody>
+  <% rows.forEach((r) => { %>
+    <tr>
+      <td><%= r.last_name %>, <%= r.first_name %> <span class="muted small"><%= r.local_id %></span></td>
+      <td><%= r.grade %></td>
+      <td class="small"><%= r.is_eligible ? (r.student_email || 'Student (18+), no email') : (r.guardians || '⚠ No guardian on file') %>
+        <br><a class="small" href="/s/consent/<%= r.token %>" target="_blank">Form link</a></td>
+      <td><%- include('../partials/status', { status: r.status }) %></td>
+      <td class="small"><%= r.signer_name || '' %><% if (r.signer_relationship) { %><br><span class="muted"><%= r.signer_relationship %> · <%= r.responded_at %></span><% } %></td>
+      <td>
+        <form method="post" action="/app/consents/<%= r.id %>/record" class="paper">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <input name="signer_name" placeholder="Parent's name" aria-label="Name of parent who signed">
+          <select name="status" aria-label="Response on paper form">
+            <option value="granted">Gave permission</option>
+            <option value="declined">Declined</option>
+            <option value="pending">Clear response</option>
+          </select>
+          <button class="btn btn-small" type="submit">Save</button>
+        </form>
+      </td>
+    </tr>
+  <% }) %>
+  </tbody>
+</table>
+</div>
+<%- include('../partials/footer') %>

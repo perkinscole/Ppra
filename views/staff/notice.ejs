@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+<div class="no-print card callout">
+  <p>This is a draft of the annual PPRA notice to families, built from your <strong>approved</strong> surveys that touch a protected area. Have counsel review it, then print it or paste it into your handbook or start-of-year mailing. Add approved surveys and the list updates.</p>
+  <button class="btn btn-primary" onclick="window.print()">Print</button>
+</div>
+<article class="notice">
+<h1>Notification of Rights under the Protection of Pupil Rights Amendment (PPRA)</h1>
+<p><strong><%= school.name %></strong> · School year <%= year %>–<%= year + 1 %></p>
+<p>The Protection of Pupil Rights Amendment (PPRA), 20 U.S.C. § 1232h, gives parents certain rights regarding our conduct of surveys, collection and use of information for marketing purposes, and certain physical exams. These rights transfer from the parent to a student who is 18 years old or an emancipated minor under State law.</p>
+
+<h2>Consent</h2>
+<p>Parents have the right to give consent before students are required to submit to a survey that concerns one or more of the following protected areas, if the survey is funded in whole or in part by a program of the U.S. Department of Education:</p>
+<ol>
+  <% ppra.PROTECTED_AREAS.forEach((a) => { %><li><%= a.help %></li><% }) %>
+</ol>
+<% if (school.opt_in_all_protected) { %>
+<p><strong><%= school.name %> policy:</strong> We ask for your written permission before your child takes <em>any</em> survey covering a protected area, no matter how the survey is funded. If we do not receive your permission, your child will not take the survey.</p>
+<% } else { %>
+<p>For other surveys that cover a protected area, you will receive notice and the opportunity to opt your child out.</p>
+<% } %>
+
+<h2>Inspection</h2>
+<p>Parents have the right, upon request, to inspect a protected-information survey and any instructional materials used as part of the curriculum, before it is given to students. To see every survey we give and request to review one, visit <strong><%= absUrl('/s/' + school.slug) %></strong><%= school.contact_email ? ' or email ' + school.contact_email : '' %>.</p>
+
+<h2>Surveys scheduled this year</h2>
+<% if (!surveys.length) { %>
+  <p>No surveys covering protected areas are scheduled at this time. We will notify you directly if this changes.</p>
+<% } else { %>
+<table class="print-table">
+  <thead><tr><th>Survey</th><th>Grades</th><th>Approximate dates</th><th>Protected areas</th><th>Your choice</th></tr></thead>
+  <tbody>
+  <% surveys.forEach((s) => { %>
+    <tr>
+      <td><strong><%= s.title %></strong><% if (s.description) { %><br><span class="small"><%= s.description %></span><% } %></td>
+      <td><%= s.grades || 'All' %></td>
+      <td><%= s.start_date || 'TBD' %><%= s.end_date ? ' – ' + s.end_date : '' %></td>
+      <td class="small"><%= s.classification.areas.map((a) => ppra.AREA_BY_KEY[a].label).join('; ') %></td>
+      <td class="small"><%= s.classification.required === 'opt_in' ? 'Your written permission is required' : 'You may opt your child out' %></td>
+    </tr>
+  <% }) %>
+  </tbody>
+</table>
+<% } %>
+
+<h2>Complaints</h2>
+<p>Parents who believe their rights have been violated may file a complaint with the Student Privacy Policy Office, U.S. Department of Education, 400 Maryland Avenue, SW, Washington, D.C. 20202.</p>
+</article>
+<%- include('../partials/footer') %>

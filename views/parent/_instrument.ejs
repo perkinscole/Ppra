@@ -1,0 +1,8 @@
+<section class="card">
+  <h2>The full survey</h2>
+  <% if (survey.instrument_text) { %>
+    <details <%= open ? 'open' : '' %>><summary>Read every question</summary><pre class="instrument"><%= survey.instrument_text %></pre></details>
+  <% } %>
+  <% if (survey.file_name) { %><p><a class="btn" href="<%= fileUrl %>">Download the survey (<%= survey.file_name %>)</a></p><% } %>
+  <% if (!survey.instrument_text && !survey.file_name) { %><p>Contact <%= portal.contact_email || 'the school office' %> to review the survey.</p><% } %>
+</section>

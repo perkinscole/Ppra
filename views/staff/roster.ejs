@@ -1,0 +1,33 @@
+<%- include('../partials/header') %>
+<h1>Students &amp; families</h1>
+<% if (result) { %>
+  <div class="flash flash-ok">Imported <%= result.students %> students and <%= result.guardians %> guardian links.
+    <% if (result.skipped.length) { %><ul class="small"><% result.skipped.slice(0, 20).forEach((s) => { %><li><%= s %></li><% }) %></ul><% } %></div>
+<% } %>
+<% if (user.role === 'admin') { %>
+<details class="card" <%= total ? '' : 'open' %>>
+  <summary><strong>Import roster from your SIS (CSV)</strong></summary>
+  <p class="small">Columns: <code>student_id, first_name, last_name, grade, guardian_name, guardian_email</code>. Optional: <code>guardian2_name, guardian2_email, eligible</code> (yes if 18 or older or emancipated; PPRA rights then belong to the student), <code>student_email</code>. Re-importing updates existing students by <code>student_id</code>.</p>
+  <form method="post" action="/app/roster/import" enctype="multipart/form-data" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Upload CSV <input type="file" name="roster_file" accept=".csv,.txt"></label>
+    <label>…or paste it <textarea name="csv_text" rows="5" class="mono" placeholder="student_id,first_name,last_name,grade,guardian_name,guardian_email"></textarea></label>
+    <button class="btn btn-primary" type="submit">Import</button>
+  </form>
+</details>
+<% } %>
+<p class="muted"><%= total %> students<%= total > students.length ? ` (showing the first ${students.length})` : '' %></p>
+<% if (students.length) { %>
+<div class="card flush">
+<table>
+  <thead><tr><th>ID</th><th>Student</th><th>Grade</th><th>Consent goes to</th></tr></thead>
+  <tbody>
+  <% students.forEach((s) => { %>
+    <tr><td class="small"><%= s.local_id %></td><td><%= s.last_name %>, <%= s.first_name %></td><td><%= s.grade %></td>
+      <td class="small"><%= s.is_eligible ? 'Student (eligible, 18+)' + (s.email ? ': ' + s.email : '') : (s.guardians || '⚠ No guardian on file') %></td></tr>
+  <% }) %>
+  </tbody>
+</table>
+</div>
+<% } %>
+<%- include('../partials/footer') %>

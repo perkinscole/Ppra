@@ -1,0 +1,2 @@
+<% const statusLabels = { draft: 'Draft', in_review: 'In review', approved: 'Approved', rejected: 'Needs changes', retired: 'Retired', pending: 'No response', granted: 'Permission given', declined: 'Declined', open: 'Open', fulfilled: 'Fulfilled' }; %>
+<span class="badge st-<%= status %>"><%= statusLabels[status] || status %></span>

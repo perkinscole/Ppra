@@ -1,0 +1,7 @@
+<%- include('../partials/header') %>
+<h1><%= survey.title %></h1>
+<p class="lead">You asked to review this survey. Here it is in full.</p>
+<%- include('_survey_info') %>
+<%- include('_instrument', { open: true, fileUrl: '/s/inspect/' + token + '/file' }) %>
+<p class="small muted">This link expires 30 days after it was sent. Questions? Contact <%= portal.contact_email || 'your school office' %>.</p>
+<%- include('../partials/footer') %>

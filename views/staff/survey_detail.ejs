@@ -1,0 +1,118 @@
+<%- include('../partials/header') %>
+<% const unflagged = Object.keys(suggestions).filter((k) => !c.areas.includes(k)); %>
+<div class="pagehead">
+  <div>
+    <p class="crumbs"><a href="/app/surveys">Surveys</a></p>
+    <h1><%= survey.title %> <%- include('../partials/status', { status: survey.status }) %></h1>
+    <p class="muted"><%= survey.administered_by %><%= survey.grades ? ' · Grades ' + survey.grades : ' · All grades' %><%= survey.start_date ? ' · ' + survey.start_date : '' %><%= survey.end_date ? ' – ' + survey.end_date : '' %></p>
+  </div>
+  <div class="actions">
+    <% if (['draft', 'rejected'].includes(survey.status)) { %>
+      <a class="btn" href="/app/surveys/<%= survey.id %>/edit">Edit</a>
+      <form method="post" action="/app/surveys/<%= survey.id %>/submit" class="inline">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button class="btn btn-primary" type="submit">Submit for review</button>
+      </form>
+    <% } %>
+    <% if (survey.status !== 'retired' && user.role !== 'staff') { %>
+      <form method="post" action="/app/surveys/<%= survey.id %>/retire" class="inline" onsubmit="return confirm('Retire this survey? It will be removed from the parent page and closed to new responses.')">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button class="btn btn-quiet" type="submit">Retire</button>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<% if (survey.status === 'rejected' && survey.review_notes) { %>
+  <div class="flash flash-warn"><strong>Reviewer notes<%= reviewer ? ' from ' + reviewer.name : '' %>:</strong> <%= survey.review_notes %></div>
+<% } %>
+
+<div class="cols">
+  <section class="card tier-card tier-card-<%= c.required %>">
+    <h2>PPRA determination</h2>
+    <p class="tier-big"><%- include('../partials/tier', { tier: c.required }) %> <%= ppra.CONSENT_TIERS[c.required].label %></p>
+    <% if (c.required !== c.legalMinimum) { %><p class="small">Legal minimum: <%= ppra.CONSENT_TIERS[c.legalMinimum].label %>. Your district policy requires more.</p><% } %>
+    <ul class="small">
+      <% c.reasons.forEach((r) => { %><li><%= r %></li><% }) %>
+      <% if (c.inspectionRight) { %><li>Parents have the right to inspect this survey before it is given.</li><% } %>
+    </ul>
+    <h3>Protected areas marked</h3>
+    <% if (c.areas.length) { %>
+      <ul class="chips"><% c.areas.forEach((a) => { %><li class="chip"><%= ppra.AREA_BY_KEY[a].label %></li><% }) %></ul>
+    <% } else { %><p class="muted">None</p><% } %>
+    <% if (unflagged.length) { %>
+      <div class="flash flash-warn small">
+        <strong>Check these before approving:</strong> the questions use words from areas that are not marked:
+        <ul><% unflagged.forEach((k) => { %><li><%= ppra.AREA_BY_KEY[k].label %>: <em><%= suggestions[k].join(', ') %></em></li><% }) %></ul>
+      </div>
+    <% } %>
+    <p class="small muted">Funding: <%= ppra.FUNDING_SOURCES[survey.funding_source] %>. Students <%= survey.requires_student_response ? 'are required to respond' : 'respond voluntarily' %>.</p>
+  </section>
+
+  <section class="card">
+    <h2>Review</h2>
+    <% if (survey.status === 'in_review' && user.role !== 'staff') { %>
+      <form method="post" action="/app/surveys/<%= survey.id %>/review" class="stack">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <p class="small">Before approving, confirm that:</p>
+        <ul class="small checklist">
+          <li>Every question has been read and the protected areas above are complete.</li>
+          <li>The purpose statement tells parents why the survey is given and how results are used.</li>
+          <li>The full instrument (text or file) is attached for parents to inspect.</li>
+          <li>Dates and grades are correct for the annual notice.</li>
+        </ul>
+        <label>Notes <textarea name="review_notes" rows="3" placeholder="Required if sending back for changes"></textarea></label>
+        <div>
+          <button class="btn btn-primary" name="decision" value="approved" type="submit">Approve</button>
+          <button class="btn" name="decision" value="rejected" type="submit">Send back for changes</button>
+        </div>
+      </form>
+    <% } else if (survey.status === 'in_review') { %>
+      <p>Waiting for a reviewer or admin.</p>
+    <% } else if (survey.reviewed_at) { %>
+      <p><%= survey.status === 'approved' ? 'Approved' : 'Reviewed' %> by <%= reviewer ? reviewer.name : 'a reviewer' %> on <%= survey.reviewed_at %> UTC.</p>
+      <% if (survey.review_notes && survey.status !== 'rejected') { %><p class="small"><%= survey.review_notes %></p><% } %>
+    <% } else { %>
+      <p class="muted">Not yet submitted.</p>
+    <% } %>
+
+    <h2>Parent consent</h2>
+    <% if (survey.status !== 'approved') { %>
+      <p class="muted">Consent forms can be generated after approval.</p>
+    <% } else if (c.required === 'none') { %>
+      <p class="muted">No consent needed for this survey.</p>
+    <% } else { %>
+      <% if (counts.total) { %>
+        <p><strong><%= counts.granted %></strong> permission given · <strong><%= counts.declined %></strong> declined · <strong><%= counts.pending %></strong> no response, out of <%= counts.total %> students.</p>
+        <% if (c.required === 'opt_in') { %><p class="small">Students with no response <strong>do not</strong> take the survey.</p><% } %>
+      <% } %>
+      <form method="post" action="/app/surveys/<%= survey.id %>/consents" class="inline">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button class="btn <%= counts.total ? '' : 'btn-primary' %>" type="submit"><%= counts.total ? 'Add forms for new students' : 'Generate consent forms' %></button>
+      </form>
+      <% if (counts.total) { %><a class="btn btn-primary" href="/app/surveys/<%= survey.id %>/consents">Track responses</a><% } %>
+    <% } %>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Instrument</h2>
+  <% if (survey.description) { %><p><strong>Purpose:</strong> <%= survey.description %></p><% } %>
+  <% if (survey.file_name) { %><p>Attached file: <a href="/app/surveys/<%= survey.id %>/file"><%= survey.file_name %></a></p><% } %>
+  <% if (survey.instrument_text) { %><pre class="instrument"><%= survey.instrument_text %></pre><% } else if (!survey.file_name) { %><p class="flash flash-warn">No questions or file attached. Parents cannot inspect this survey until you add one.</p><% } %>
+</section>
+
+<div class="cols">
+  <section class="card">
+    <h2>Parent inspection requests</h2>
+    <% if (!requests.length) { %><p class="muted">None.</p><% } else { %>
+      <ul class="plain"><% requests.forEach((r) => { %><li><%- include('../partials/status', { status: r.status }) %> <%= r.requester_name %> <span class="muted small">· <%= r.created_at %></span></li><% }) %></ul>
+      <p><a href="/app/requests">Manage requests →</a></p>
+    <% } %>
+  </section>
+  <section class="card">
+    <h2>History</h2>
+    <ul class="plain small"><% history.forEach((h) => { %><li><span class="muted"><%= h.created_at %></span> <%= h.actor %> <%= h.action %><%= h.detail ? ': ' + h.detail : '' %></li><% }) %></ul>
+  </section>
+</div>
+<%- include('../partials/footer') %>

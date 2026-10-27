@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title ? title + ' · ' : '' %>PPRA Consent Manager</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<% const parentView = typeof portal !== 'undefined' && portal; %>
+<header class="topbar no-print">
+  <div class="wrap topbar-inner">
+    <% if (parentView) { %>
+      <a class="brand" href="/s/<%= portal.slug %>"><span class="brand-mark" aria-hidden="true">✓</span><%= portal.name %></a>
+      <span class="muted small">Student survey information for families</span>
+    <% } else { %>
+      <a class="brand" href="<%= user ? '/app' : '/' %>"><span class="brand-mark" aria-hidden="true">✓</span>PPRA Consent Manager</a>
+      <% if (user) { %>
+        <nav class="mainnav" aria-label="Main">
+          <a href="/app">Dashboard</a>
+          <a href="/app/surveys">Surveys</a>
+          <a href="/app/roster">Families</a>
+          <a href="/app/requests">Requests</a>
+          <a href="/app/notice">Annual notice</a>
+          <% if (user.role === 'admin') { %><a href="/app/settings">Settings</a><% } %>
+          <% if (user.role !== 'staff') { %><a href="/app/audit">Audit</a><% } %>
+        </nav>
+        <form method="post" action="/logout" class="inline">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <button class="linklike" type="submit">Sign out</button>
+        </form>
+      <% } else { %>
+        <nav class="mainnav"><a href="/login">Sign in</a></nav>
+      <% } %>
+    <% } %>
+  </div>
+</header>
+<main id="main" class="wrap">
+<% if (flash) { %><div class="flash flash-<%= flash.type %>" role="status"><%= flash.text %></div><% } %>

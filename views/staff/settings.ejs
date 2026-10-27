@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+<h1>Settings</h1>
+<div class="cols">
+<section class="card">
+  <h2>School</h2>
+  <form method="post" action="/app/settings" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Name <input name="name" value="<%= school.name %>" required></label>
+    <label>Contact email shown to parents <input type="email" name="contact_email" value="<%= school.contact_email || '' %>"></label>
+    <label class="check"><input type="checkbox" name="opt_in_all_protected" <%= school.opt_in_all_protected ? 'checked' : '' %>>
+      <span><strong>Require opt-in consent for every survey that touches a protected area</strong><br>
+      <span class="small muted">PPRA only requires opt-in for surveys funded by the U.S. Department of Education. With this on, opt-out is never used: if a parent does not sign, the student does not take the survey.</span></span></label>
+    <button class="btn btn-primary" type="submit">Save</button>
+  </form>
+  <p class="small muted">Parent page: <a href="/s/<%= school.slug %>"><%= absUrl('/s/' + school.slug) %></a></p>
+</section>
+<section class="card">
+  <h2>Team</h2>
+  <table>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+    <tbody><% users.forEach((u) => { %><tr><td><%= u.name %></td><td><%= u.email %></td><td><%= u.role %></td></tr><% }) %></tbody>
+  </table>
+  <h3>Add a team member</h3>
+  <p class="small muted"><strong>Staff</strong> add surveys and track consent. <strong>Reviewers</strong> also approve surveys. <strong>Admins</strong> also manage the roster, settings, and team.</p>
+  <form method="post" action="/app/users" class="stack" id="adduser">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="row"><label>Name <input name="name" required></label><label>Email <input type="email" name="email" required></label></div>
+    <div class="row">
+      <label>Role <select name="role"><option value="staff">Staff</option><option value="reviewer">Reviewer</option><option value="admin">Admin</option></select></label>
+      <label>Temporary password <input name="password" minlength="10" required autocomplete="new-password"></label>
+    </div>
+    <button class="btn" type="submit">Add</button>
+  </form>
+</section>
+</div>
+<%- include('../partials/footer') %>
